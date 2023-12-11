@@ -8,7 +8,7 @@
 
 #define MAX_BUFFER_SIZE 516
 
-void create_rrq_packets(char *filename,char *mode,char *request_packet){ // read request
+void create_rrq_packets(char *filename,char *mode,char *request_packet){ // read  request
     request_packet[0]=0;
     request_packet[1]=1;
     strcpy(request_packet+2,filename);
