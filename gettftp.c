@@ -47,22 +47,71 @@ void tftp_client(char *server_ip,int port,char *filename){
         close(sockfd);
         exit(EXIT_FAILURE);
     }
+
+    FILE *file=fopen(filename,"wb");
+    if (file==NULL){
+        perror("Error opening the file");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
+    struct sockaddr_in server_response_addr;
+    socklen_t server_response_len = sizeof(server_response_addr);
+
+    while(1){
+        char buffer[MAX_BUFFER_SIZE];
+        ssize_t recv_size=recvfrom(sockfd,buffer,MAX_BUFFER_SIZE,0,(struct sockaddr *)&server_response_addr,&server_response_len);
+
+        if (recv_size==-1){
+            perror("Error in the reception of datas");
+            fclose(file);
+            close(sockfd);
+            exit(EXIT_FAILURE);
+        }
+        short opcode;
+        memcpy(&opcode,buffer, sizeof(short));
+        opcode = ntohs(opcode);
+
+        if (opcode==3) {
+            fwrite(buffer + 4, 1, recv_size - 4, file);
+
+            char ack_packet[4];
+            ack_packet[0]=0;
+            ack_packet[1]=4;
+            short block_number;
+            memcpy(&block_number, buffer + 2, sizeof(short));
+            block_number = ntohs(block_number);
+            memcpy(ack_packet + 2, &block_number, sizeof(short));
+
+            sendto(sockfd, ack_packet, 4, 0, (struct sockaddr *)&server_response_addr, server_response_len);
+        }
+        if (recv_size < MAX_BUFFER_SIZE - 4) {
+            break;
+        }
+    }
+
+    fclose(file);
+    close(sockfd);
+    freeaddrinfo(res);
 }
 
 int main(int argc,char *argv[]){
     if(argc==4){  // gettftp ; server ; port; file
         char *server_ip=argv[1];
-        if (atoi(argv[2])==0){  // if there isnt the port, return failure
+        int port;
+        if (atoi(argv[2])==0){  // if there isn't the port, return failure
             fprintf(stderr,"Port format doesn't match");
             exit(EXIT_FAILURE);
         } else {
-            int port = atoi(argv[2]);
+            port = atoi(argv[2]);
         }
         char *filename = argv[3];
+        tftp_client(server_ip,port,filename);
     } else if(argc==3){
         char *server_ip=argv[1];
-        int port = 69;
+        int port = 1069;
         char *filename = argv[2];
+        tftp_client(server_ip,port,filename);
     } else {
         fprintf(stderr,"Usage: %s <server_ip> <port> <filename>\n",argv[0]);
         exit(EXIT_FAILURE);
