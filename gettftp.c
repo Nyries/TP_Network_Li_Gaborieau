@@ -67,4 +67,5 @@ int main(int argc,char *argv[]){
         fprintf(stderr,"Usage: %s <server_ip> <port> <filename>\n",argv[0]);
         exit(EXIT_FAILURE);
     }
+
 }
