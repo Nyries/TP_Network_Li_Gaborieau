@@ -8,7 +8,7 @@
 
 #define MAX_BUFFER_SIZE 516
 
-void create_rrq_packets(char *filename,char *mode,char *request_packet){
+void create_rrq_packets(char *filename,char *mode,char *request_packet){ // read request
     request_packet[0]=0;
     request_packet[1]=1;
     strcpy(request_packet+2,filename);
@@ -28,6 +28,7 @@ void tftp_client(char *server_ip,int port,char *filename){
         exit(EXIT_FAILURE);
     }
 
+    // socket creation :
     sockfd=socket(res->ai_family,res->ai_socktype,res->ai_protocol);
     if (sockfd<0){
         perror("Error in the creation of the socket");
@@ -51,7 +52,7 @@ void tftp_client(char *server_ip,int port,char *filename){
     }
 }
 
-int main(int argc,char *argv[]){
+int main(int argc,char *argv[]){  // Processing command line arguments
     if(argc==4){  // gettftp ; server ; port; file
         char *server_ip=argv[1];
         if (atoi(argv[2])==0){  // if there isnt the port, return failure
@@ -63,7 +64,7 @@ int main(int argc,char *argv[]){
         char *filename = argv[3];
     } else if(argc==3){
         char *server_ip=argv[1];
-        int port = 69;
+        int port = 69;  // Default port
         char *filename = argv[2];
     } else {
         fprintf(stderr,"Usage: %s <server_ip> <port> <filename>\n",argv[0]);
