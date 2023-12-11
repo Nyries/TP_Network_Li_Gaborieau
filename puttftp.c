@@ -32,10 +32,10 @@ void tftp_put_client(char *server_ip,int port,char *filename){
 int main(int argc,char *argv[]){
     if(argc==4){
         char *server_ip=argv[1];
-        if (atoi(argv[2])==0){
+        if (atoi(argv[2])==0){  // if there isnt the port, return failure
             fprintf(stderr,"Port format doesn't match");
             exit(EXIT_FAILURE);
-        } else {
+        } else {  // else return the port
             int port = atoi(argv[2]);
         }
         char *filename = argv[3];
