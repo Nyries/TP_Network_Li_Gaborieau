@@ -2,10 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
+#include <netdb.h>
 
 #define MAX_BUFFER_SIZE 516
 
+void tftp_client(char *server_ip,int port,char *filename){
+    struct addrinfo hints, *res;
+}
 int main(int argc,char *argv[]){
     if(argc==4){
         char *server_ip=argv[1];

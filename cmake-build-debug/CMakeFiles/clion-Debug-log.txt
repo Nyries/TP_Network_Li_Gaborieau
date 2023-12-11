@@ -1,1 +1,4 @@
-CMakeLists.txt not found in /home/ensea/Documents/TP_Network_Li_Gaborieau Select CMakeLists.txt
+/snap/clion/259/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/snap/clion/259/bin/ninja/linux/x64/ninja -G Ninja -S /home/ensea/Documents/TP_Network_Li_Gaborieau -B /home/ensea/Documents/TP_Network_Li_Gaborieau/cmake-build-debug
+-- Configuring done (0.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/ensea/Documents/TP_Network_Li_Gaborieau/cmake-build-debug
