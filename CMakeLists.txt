@@ -3,4 +3,6 @@ project(TP_Network_Li_Gaborieau C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(TP_Network_Li_Gaborieau main.c)
+add_executable(TP_Network_Li_Gaborieau main.c
+        gettftp.c
+        puttftp.c)
