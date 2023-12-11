@@ -42,6 +42,8 @@ void tftp_client(char *server_ip,int port,char *filename){
     char request_packet[MAX_BUFFER_SIZE];
     create_rrq_packets(filename,"octet",request_packet);
 
+
+    // if error in "sendto", it returns -1, next we check if there is an error in sendto.
     if (sendto(sockfd,request_packet,MAX_BUFFER_SIZE,0,(struct sockaddr *)&server_addr, sizeof(server_addr))==-1){
         perror("Error sending rrq request");
         close(sockfd);
