@@ -1,4 +1,13 @@
-/snap/clion/259/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/snap/clion/259/bin/ninja/linux/x64/ninja -G Ninja -S /home/ensea/Documents/TP_Network_Li_Gaborieau -B /home/ensea/Documents/TP_Network_Li_Gaborieau/cmake-build-debug
--- Configuring done (0.3s)
--- Generating done (0.1s)
--- Build files have been written to: /home/ensea/Documents/TP_Network_Li_Gaborieau/cmake-build-debug
+/private/var/folders/rw/76890ybs2ds4ltw1sd0rvphh0000gn/T/AppTranslocation/377654DB-3F0C-431A-A236-9A7CF798BD4D/d/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /Users/lucieli/CLionProjects/TP_Network_Li_Gaborieau -B /Users/lucieli/CLionProjects/TP_Network_Li_Gaborieau/cmake-build-debug
+CMake Deprecation Warning:
+  Support for "Extra Generators" like
+
+    CodeBlocks
+
+  is deprecated and will be removed from a future version of CMake.  IDEs may
+  use the cmake-file-api(7) to view CMake-generated project build trees.
+
+
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/lucieli/CLionProjects/TP_Network_Li_Gaborieau/cmake-build-debug
