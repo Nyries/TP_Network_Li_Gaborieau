@@ -8,7 +8,12 @@
 
 #define MAX_BUFFER_SIZE 516
 
-
+void create_rrq_packets(char *filename,char *mode,char *request_packet){
+    request_packet[0]=0;
+    request_packet[1]=1;
+    strcpy(request_packet+2,filename);
+    strcat(request_packet+2+ strlen(filename)+1,mode);
+}
 
 void tftp_client(char *server_ip,int port,char *filename){
     struct addrinfo hints, *res;
@@ -34,6 +39,14 @@ void tftp_client(char *server_ip,int port,char *filename){
     server_addr.sin_port=htons(port);
     memcpy(&server_addr.sin_addr,&((struct sockaddr_in*)res->ai_addr)->sin_addr, sizeof(struct in_addr));
 
+    char request_packet[MAX_BUFFER_SIZE];
+    create_rrq_packets(filename,"octet",request_packet);
+
+    if (sendto(sockfd,request_packet,MAX_BUFFER_SIZE,0,(struct sockaddr *)&server_addr, sizeof(server_addr))==-1){
+        perror("Error sending rrq request");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
 }
 
 int main(int argc,char *argv[]){
