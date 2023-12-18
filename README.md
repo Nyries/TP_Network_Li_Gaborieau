@@ -16,6 +16,10 @@ The program uses the getaddrinfo function to resolve the server name and obtain 
 A socket is reserved using the address information obtained, enabling a connection to be established with the TFTP server.
 
 ## Q4 : For gettftp:
+
+The questions are similar to Q4, but care must be taken to change the OPcode to 02 as indicated in 
+
+
 We use the informations on https://datatracker.ietf.org/doc/html/rfc1350 : 
 <img width="726" alt="image" src="https://github.com/Nyries/TP_Network_Li_Gaborieau/assets/152593516/8e688a13-1a0a-48b2-b617-4e0cf9a0cd72">
 
@@ -39,6 +43,9 @@ The program is able to receive a file consisting of a single data packet and sen
 The program supports the reception of files made up of several data packets and sends the corresponding acknowledgements.
 
 ## Q5 : For puttftp : 
+
+the questions are similar to Q4, but we have to change the opcode to 02 as indicated in the sources above. 
+
 - a) Build a properly formed Write Request (WRQ) and send it to the server.
 - b) Send a file consisting of a single Data (DAT) packet and receive its acknowledg-
 ment (ACK)
