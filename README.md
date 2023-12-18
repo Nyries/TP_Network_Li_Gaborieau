@@ -16,6 +16,15 @@ The program uses the getaddrinfo function to resolve the server name and obtain 
 A socket is reserved using the address information obtained, enabling a connection to be established with the TFTP server.
 
 ## Q4 : For gettftp:
+We use the informations on https://datatracker.ietf.org/doc/html/rfc1350 : 
+<img width="726" alt="image" src="https://github.com/Nyries/TP_Network_Li_Gaborieau/assets/152593516/8e688a13-1a0a-48b2-b617-4e0cf9a0cd72">
+
+<img width="726" alt="image" src="https://github.com/Nyries/TP_Network_Li_Gaborieau/assets/152593516/774bcaf1-32a5-4007-a178-df10222243fd">
+
+<img width="523" alt="image" src="https://github.com/Nyries/TP_Network_Li_Gaborieau/assets/152593516/78b71a01-b732-4c74-9f02-34f88083189e">
+
+
+
 - a) Build a properly formed Read Request (RRQ) and send it to the server.
   
 The program constructs a correct RRQ request and sends it to the TFTP server to request the download of a file.
