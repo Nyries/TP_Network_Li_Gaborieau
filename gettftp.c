@@ -5,14 +5,18 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <fcntl.h>
 
 #define MAX_BUFFER_SIZE 516
 
 void create_rrq_packets(char *filename,char *mode,char *request_packet){
-    request_packet[0]=0;
-    request_packet[1]=1;
+    short opcode = htons(2);
+    memcpy(request_packet,&opcode, sizeof(short));
     strcpy(request_packet+2,filename);
+    //strcat(request_packet+2+strlen(filename),"");
     strcat(request_packet+2+ strlen(filename)+1,mode);
+    //strcat(request_packet+2+ strlen(filename)+1+ strlen(mode),"\0");
+
 }
 
 void tftp_client(char *server_ip,int port,char *filename){
@@ -28,7 +32,7 @@ void tftp_client(char *server_ip,int port,char *filename){
         exit(EXIT_FAILURE);
     }
 
-    sockfd=socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+    sockfd=socket(res->ai_family,res->ai_socktype,0);
     if (sockfd<0){
         perror("Error in the creation of the socket");
         exit(EXIT_FAILURE);
@@ -43,38 +47,36 @@ void tftp_client(char *server_ip,int port,char *filename){
     create_rrq_packets(filename,"octet",request_packet);
 
     if (sendto(sockfd,request_packet,MAX_BUFFER_SIZE,0,(struct sockaddr *)&server_addr, sizeof(server_addr))==-1){
-        perror("Error sending rrq request");
+        perror("Error sending RRQ request");
         close(sockfd);
         exit(EXIT_FAILURE);
     }
 
-    FILE *file=fopen(filename,"wb");
-    if(file==NULL){
-        perror("Error opening th file");
+    int file=creat(filename,O_RDWR|S_IRWXU|S_IRGRP|S_IXGRP);
+    if(file==-1){
+        perror("Error opening the file");
         close(sockfd);
         freeaddrinfo(res);
         exit(EXIT_FAILURE);
     }
 
-    struct sockaddr_in server_response_addr;
-    socklen_t server_response_len = sizeof(server_response_addr);
-
     while(1){
         char buffer[MAX_BUFFER_SIZE];
-        ssize_t recv_size = recvfrom(sockfd,buffer,MAX_BUFFER_SIZE,0,(struct sockaddr *)&server_response_addr,&server_response_len);
+        ssize_t recv_size = recvfrom(sockfd,buffer,MAX_BUFFER_SIZE,0,res->ai_addr,&res->ai_addrlen);
 
         if (recv_size==-1){
             perror("Error in the reception of datas");
-            fclose(file);
+            close(file);
             close(sockfd);
             exit(EXIT_FAILURE);
         }
+
         short opcode;
         memcpy(&opcode,buffer, sizeof(short));
         opcode = ntohs(opcode);
 
         if (opcode==3){
-            fwrite(buffer + 4,1,recv_size-4,file);
+            write(file,buffer + 4,recv_size-4);
 
             char ack_packet[4];
             ack_packet[0]=0;
@@ -82,15 +84,15 @@ void tftp_client(char *server_ip,int port,char *filename){
             short block_number;
             memcpy(&block_number,buffer+2, sizeof(short));
             block_number = ntohs(block_number);
-            memcpy((ack_packet +2, &block_number, sizeof(short)));
+            memcpy(ack_packet +2, &block_number, sizeof(short));
 
-            sendto(sockfd,ack_packet,4,0,(struct sockaddr *)&server_response_addr, server_response_len);
+            sendto(sockfd,ack_packet,4,0,res->ai_addr,res->ai_addrlen );
         }
         if (recv_size<MAX_BUFFER_SIZE-4){
             break;
         }
     }
-    fclose(file);
+    close(file);
     close(sockfd);
     freeaddrinfo(res);
 }
@@ -98,17 +100,20 @@ void tftp_client(char *server_ip,int port,char *filename){
 int main(int argc,char *argv[]){
     if(argc==4){  // gettftp ; server ; port; file
         char *server_ip=argv[1];
+        int port;
         if (atoi(argv[2])==0){  // if there isnt the port, return failure
             fprintf(stderr,"Port format doesn't match");
             exit(EXIT_FAILURE);
         } else {
-            int port = atoi(argv[2]);
+            port = atoi(argv[2]);
         }
         char *filename = argv[3];
+        tftp_client(server_ip,port,filename);
     } else if(argc==3){
         char *server_ip=argv[1];
         int port = 69;
         char *filename = argv[2];
+        tftp_client(server_ip,port,filename);
     } else {
         fprintf(stderr,"Usage: %s <server_ip> <port> <filename>\n",argv[0]);
         exit(EXIT_FAILURE);
