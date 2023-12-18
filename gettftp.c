@@ -23,6 +23,7 @@ void tftp_client(char *server_ip,int port,char *filename){
     hints.ai_family=AF_INET;
     hints.ai_socktype=SOCK_DGRAM;
 
+
     if (getaddrinfo(server_ip,NULL,&hints,&res)!=0){
         perror("Error in the resolution of the server address");
         exit(EXIT_FAILURE);
