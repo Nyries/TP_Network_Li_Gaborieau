@@ -15,10 +15,7 @@ The program uses the getaddrinfo function to resolve the server name and obtain 
 
 A socket is reserved using the address information obtained, enabling a connection to be established with the TFTP server.
 
-## Q4 : For gettftp:
-
-The questions are similar to Q4, but care must be taken to change the OPcode to 02 as indicated in 
-
+## Q4 : For gettftp :  
 
 We use the informations on https://datatracker.ietf.org/doc/html/rfc1350 : 
 <img width="726" alt="image" src="https://github.com/Nyries/TP_Network_Li_Gaborieau/assets/152593516/8e688a13-1a0a-48b2-b617-4e0cf9a0cd72">
