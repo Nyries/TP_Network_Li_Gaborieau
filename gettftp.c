@@ -109,7 +109,7 @@ void tftp_client(char *server_ip,int port,char *filename){  // implement the TFT
 }
 
 int main(int argc,char *argv[]){  // Processing command line arguments
-    if(argc==4){  // gettftp ; server ; port; file
+    if(argc==4){  // gettftp; server; port; file
         char *server_ip=argv[1];
         if (atoi(argv[2])==0){  // if there isnt the port, return failure
             fprintf(stderr,"Port format doesn't match");
@@ -118,7 +118,7 @@ int main(int argc,char *argv[]){  // Processing command line arguments
             int port = atoi(argv[2]);
         }
         char *filename = argv[3];
-    } else if(argc==3){
+    } else if(argc==3){ // gettftp; server; filename
         char *server_ip=argv[1];
         int port = 69;  // default value
         char *filename = argv[2];
