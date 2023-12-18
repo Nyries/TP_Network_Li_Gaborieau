@@ -53,6 +53,10 @@ ment (ACK)
 acknowledgments (ACK).
 
 
+## Q6 : Use the blocksize option : 
+
+
+
 
 
 
