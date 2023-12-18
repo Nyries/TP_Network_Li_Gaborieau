@@ -8,14 +8,14 @@
 
 #define MAX_BUFFER_SIZE 516
 
-void create_rrq_packets(char *filename,char *mode,char *request_packet){ // read request
+void create_rrq_packets(char *filename,char *mode,char *request_packet){ // create a read request packet
     request_packet[0]=0;
     request_packet[1]=1;
     strcpy(request_packet+2,filename);
     strcat(request_packet+2+ strlen(filename)+1,mode);
 }
 
-void tftp_client(char *server_ip,int port,char *filename){
+void tftp_client(char *server_ip,int port,char *filename){  // implement the TFTP client
     struct addrinfo hints, *res;
     int sockfd;
 
@@ -29,13 +29,14 @@ void tftp_client(char *server_ip,int port,char *filename){
         exit(EXIT_FAILURE);
     }
 
-    // Socket creation
+    // create a socket
     sockfd=socket(res->ai_family,res->ai_socktype,res->ai_protocol);
     if (sockfd<0){
         perror("Error in the creation of the socket");
         exit(EXIT_FAILURE);
     }
 
+    // Set up the server address
     struct sockaddr_in server_addr;
     server_addr.sin_family=AF_INET;
     server_addr.sin_port=htons(port);
@@ -44,6 +45,7 @@ void tftp_client(char *server_ip,int port,char *filename){
     char request_packet[MAX_BUFFER_SIZE];
     create_rrq_packets(filename,"octet",request_packet);
 
+    // Send the RRQ request to the server
     // On error for "sendto", -1 is returned, we check if there is an error.
     if (sendto(sockfd,request_packet,MAX_BUFFER_SIZE,0,(struct sockaddr *)&server_addr, sizeof(server_addr))==-1){
         perror("Error sending rrq request");
@@ -51,6 +53,8 @@ void tftp_client(char *server_ip,int port,char *filename){
         exit(EXIT_FAILURE);
     }
 
+
+    // Open the file for writing
     FILE *file=fopen(filename,"wb");
     if(file==NULL){
         perror("Error opening th file");
@@ -59,6 +63,8 @@ void tftp_client(char *server_ip,int port,char *filename){
         exit(EXIT_FAILURE);
     }
 
+
+    // Set up variables for server response
     struct sockaddr_in server_response_addr;
     socklen_t server_response_len = sizeof(server_response_addr);
 
@@ -72,13 +78,16 @@ void tftp_client(char *server_ip,int port,char *filename){
             close(sockfd);
             exit(EXIT_FAILURE);
         }
-        short opcode;
+        short opcode; // Extract opcode from received packet
         memcpy(&opcode,buffer, sizeof(short));
         opcode = ntohs(opcode);
 
-        if (opcode==3){
+
+        // Process DATA packet
+        if (opcode==3){  // Write data to the file
             fwrite(buffer + 4,1,recv_size-4,file);
 
+            // Send ACK packet for the received data
             char ack_packet[4];
             ack_packet[0]=0;
             ack_packet[1]=4;
@@ -89,6 +98,7 @@ void tftp_client(char *server_ip,int port,char *filename){
 
             sendto(sockfd,ack_packet,4,0,(struct sockaddr *)&server_response_addr, server_response_len);
         }
+        // check the received packet
         if (recv_size<MAX_BUFFER_SIZE-4){
             break;
         }

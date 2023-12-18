@@ -1,4 +1,4 @@
-/private/var/folders/rw/76890ybs2ds4ltw1sd0rvphh0000gn/T/AppTranslocation/377654DB-3F0C-431A-A236-9A7CF798BD4D/d/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /Users/lucieli/CLionProjects/TP_Network_Li_Gaborieau -B /Users/lucieli/CLionProjects/TP_Network_Li_Gaborieau/cmake-build-debug
+/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /Users/lucieli/CLionProjects/TP_Network_Li_Gaborieau -B /Users/lucieli/CLionProjects/TP_Network_Li_Gaborieau/cmake-build-debug
 CMake Deprecation Warning:
   Support for "Extra Generators" like
 
