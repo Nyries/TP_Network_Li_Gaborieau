@@ -1,118 +1,133 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <netdb.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
-#define MAX_BUFFER_SIZE 516
 
-void create_rrq_packets(char *filename,char *mode,char *request_packet){
-    request_packet[0]=0;
-    request_packet[1]=1;
-    strcpy(request_packet+2,filename);
-    strcat(request_packet+2+ strlen(filename)+1,mode);
-}
+#define ARGUMENTS_ERROR "Error, you must specify 3 arguments."
+#define SERVER_ADDR_ERROR "Error trying to get the server address."
+#define SOCKET_ERROR "Socket creation error"
+#define SEND_ERROR "Error sending data"
+#define RECEIVE_ERROR "Error receiving data"
 
-void tftp_client(char *server_ip,int port,char *filename){
+#define RRQ_MODE "octet"
+#define DATA_OPCODE 3
+#define ACK_OPCODE 4
+
+
+void main(int argc, char** argv) {
+    // Address, Port, FileName, BlockSize
+
+    // Q1 - Argument count test
+    if (argc != 5) {
+        printf(ARGUMENTS_ERROR);
+        exit(EXIT_FAILURE);
+    }
+
+    // Q2 - Initialise the hints structure for getaddrinfo
     struct addrinfo hints, *res;
-    int sockfd;
+    memset(&hints, 0, sizeof hints);  // Hints structure
+    hints.ai_family = AF_INET;                 // IPv4
+    hints.ai_socktype = SOCK_DGRAM;            // UDP socket
 
-    memset(&hints,0,sizeof(hints));
-    hints.ai_family=AF_INET;
-    hints.ai_socktype=SOCK_DGRAM;
-
-
-    if (getaddrinfo(server_ip,NULL,&hints,&res)!=0){
-        perror("Error in the resolution of the server address");
+    // Try to get the server address
+    if (getaddrinfo(argv[1], argv[2], &hints, &res) !=0) {
+        perror(SERVER_ADDR_ERROR);
+        freeaddrinfo(res);
         exit(EXIT_FAILURE);
     }
 
-    sockfd=socket(res->ai_family,res->ai_socktype,res->ai_protocol);
-    if (sockfd<0){
-        perror("Error in the creation of the socket");
-        exit(EXIT_FAILURE);
-    }
-
-    struct sockaddr_in server_addr;
-    server_addr.sin_family=AF_INET;
-    server_addr.sin_port=htons(port);
-    memcpy(&server_addr.sin_addr,&((struct sockaddr_in*)res->ai_addr)->sin_addr, sizeof(struct in_addr));
-
-    char request_packet[MAX_BUFFER_SIZE];
-    create_rrq_packets(filename,"octet",request_packet);
-
-    if (sendto(sockfd,request_packet,MAX_BUFFER_SIZE,0,(struct sockaddr *)&server_addr, sizeof(server_addr))==-1){
-        perror("Error sending rrq request");
-        close(sockfd);
-        exit(EXIT_FAILURE);
-    }
-
-    FILE *file=fopen(filename,"wb");
-    if(file==NULL){
-        perror("Error opening th file");
+    // Q3 - Socket Reservation
+    int sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (sockfd == -1) {
+        perror(SOCKET_ERROR);
         close(sockfd);
         freeaddrinfo(res);
         exit(EXIT_FAILURE);
     }
 
-    struct sockaddr_in server_response_addr;
-    socklen_t server_response_len = sizeof(server_response_addr);
+    // Q6 - Block size
+    int block_size = atoi(argv[4]);
 
-    while(1){
-        char buffer[MAX_BUFFER_SIZE];
-        ssize_t recv_size = recvfrom(sockfd,buffer,MAX_BUFFER_SIZE,0,(struct sockaddr *)&server_response_addr,&server_response_len);
+    // Q4a - Build RRQ packet
+    char rrq_buffer[block_size];
+    rrq_buffer[0] = 0x00;  // Opcode (2 bytes)
+    rrq_buffer[1] = 0x01;
+    memcpy(rrq_buffer + 2, argv[3], strlen(argv[3]));  // Filename
+    rrq_buffer[2 + strlen(argv[3])] = 0;  // Null-terminate the filename
+    memcpy(rrq_buffer + 2 + strlen(argv[3]) + 1, RRQ_MODE, strlen(RRQ_MODE));  // Mode
+    rrq_buffer[2 + strlen(argv[3]) + 1 + strlen(RRQ_MODE)] = 0;  // Null-terminate the mode
+    int rrq_length = 2 + strlen(argv[3]) + 1 + strlen(RRQ_MODE) + 1;
 
-        if (recv_size==-1){
-            perror("Error in the reception of datas");
-            fclose(file);
-            close(sockfd);
-            exit(EXIT_FAILURE);
-        }
-        short opcode;
-        memcpy(&opcode,buffer, sizeof(short));
-        opcode = ntohs(opcode);
-
-        if (opcode==3){
-            fwrite(buffer + 4,1,recv_size-4,file);
-
-            char ack_packet[4];
-            ack_packet[0]=0;
-            ack_packet[1]=4;
-            short block_number;
-            memcpy(&block_number,buffer+2, sizeof(short));
-            block_number = ntohs(block_number);
-            memcpy((ack_packet +2, &block_number, sizeof(short)));
-
-            sendto(sockfd,ack_packet,4,0,(struct sockaddr *)&server_response_addr, server_response_len);
-        }
-        if (recv_size<MAX_BUFFER_SIZE-4){
-            break;
-        }
-    }
-    fclose(file);
-    close(sockfd);
-    freeaddrinfo(res);
-}
-
-int main(int argc,char *argv[]){
-    if(argc==4){  // gettftp ; server ; port; file
-        char *server_ip=argv[1];
-        if (atoi(argv[2])==0){  // if there isnt the port, return failure
-            fprintf(stderr,"Port format doesn't match");
-            exit(EXIT_FAILURE);
-        } else {
-            int port = atoi(argv[2]);
-        }
-        char *filename = argv[3];
-    } else if(argc==3){
-        char *server_ip=argv[1];
-        int port = 69;
-        char *filename = argv[2];
-    } else {
-        fprintf(stderr,"Usage: %s <server_ip> <port> <filename>\n",argv[0]);
+    // Send the RRQ packet
+    if (sendto(sockfd, rrq_buffer, rrq_length, 0, res->ai_addr, res->ai_addrlen) == -1) {
+        perror(SEND_ERROR);
+        close(sockfd);
+        freeaddrinfo(res);
         exit(EXIT_FAILURE);
     }
 
+    // Q4b - Receive Data
+    char data_buffer[block_size];
+    int block_number = 1;  // Initial block number
+
+    // Q4c - Multiple Packets
+    // Opening or Creating the File
+    int fd = open(argv[3], O_RDWR | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (fd == -1) {
+        perror("Error opening file");
+        close(sockfd);
+        freeaddrinfo(res);
+        exit(EXIT_FAILURE);
+    }
+
+    // If there's still Data
+    while(1) {
+        ssize_t recv_length = recvfrom(sockfd, data_buffer, block_size, 0, res->ai_addr, &res->ai_addrlen);
+        if (recv_length == -1) {
+            perror(RECEIVE_ERROR);
+            close(sockfd);
+            freeaddrinfo(res);
+            exit(EXIT_FAILURE);
+        }
+
+        if (data_buffer[1] == DATA_OPCODE) {
+            int received_block_number = (data_buffer[2] << 8) | data_buffer[3];
+
+            if (received_block_number == block_number) {
+                // Ack
+                char ack_buffer[4] = {0x00, ACK_OPCODE, data_buffer[2], data_buffer[3]};
+                if (sendto(sockfd, ack_buffer, 4, 0, res->ai_addr, res->ai_addrlen) == -1) {
+                    perror(SEND_ERROR);
+                    close(sockfd);
+                    freeaddrinfo(res);
+                    exit(EXIT_FAILURE);
+                }
+
+                // Write Data to File
+                if (write(fd, data_buffer + 4, recv_length - 4) == -1) {
+                    perror("Error writing to file");
+                    close(fd);
+                    exit(EXIT_FAILURE);
+                }
+
+                block_number++;
+
+                // Check if it's the last data block
+                if (recv_length < block_size) {
+                    break;
+                }
+            }
+        }
+    }
+
+    close(sockfd);
+    freeaddrinfo(res);
+
+
+    exit(EXIT_SUCCESS);
 }
